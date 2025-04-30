@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Islamic Inheritance Calculator</title>
+  <style>
+    body { font-family: 'Poppins', sans-serif; background-color: #f5f7fa; margin: 0; padding: 30px; }
+    .container { max-width: 900px; margin: auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    h2 { text-align: center; margin-bottom: 20px; }
+    .question { margin-bottom: 20px; }
+    label { display: block; font-weight: bold; margin-bottom: 5px; }
+    input, select { width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; }
+    button { background: #00b09b; color: white; padding: 12px; width: 100%; border: none; border-radius: 5px; font-size: 1rem; cursor: pointer; }
+    button:hover { background: #009186; }
+    .result { margin-top: 30px; background: #e6f7f1; padding: 20px; border-radius: 8px; display: none; font-size: 0.95rem; }
+    .hidden { display: none !important; }
+    .tier { margin-top: 10px; }
+    .steps, .distribution { margin-top: 15px; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h2>Islamic Inheritance Calculator</h2>
+  <form id="inheritanceForm">
+    <div class="question">
+      <label for="isMuslim">Was the deceased a Muslim?</label>
+      <select id="isMuslim" required>
+        <option value="">Select</option>
+        <option value="yes">Yes</option>
+        <option value="no">No</option>
+      </select>
+    </div>
+    <div class="question">
+      <label for="allHeirsMuslim">Are all heirs Muslim?</label>
+      <select id="allHeirsMuslim" required>
+        <option value="">Select</option>
+        <option value="yes">Yes</option>
+        <option value="no">No</option>
+      </select>
+    </div>
+    <div class="question">
+      <label for="gender">Deceased Gender</label>
+      <select id="gender" required>
+        <option value="">Select</option>
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+      </select>
+    </div>
+    <div class="question">
+      <label for="married">Was the deceased married?</label>
+      <select id="married" required>
+        <option value="">Select</option>
+        <option value="yes">Yes</option>
+        <option value="no">No</option>
+      </select>
+    </div>
+    <div id="wivesCountDiv" class="question hidden">
+      <label for="wivesCount">How many wives alive?</label>
+      <input type="number" id="wivesCount" min="1" />
+    </div>
+    <div id="husbandAliveDiv" class="question hidden">
+      <label for="husbandAlive">Is husband alive?</label>
+      <select id="husbandAlive">
+        <option value="">Select</option>
+        <option value="yes">Yes</option>
+        <option value="no">No</option>
+      </select>
+    </div>
+    <div class="question">
+      <label for="fatherAlive">Is father alive?</label>
+      <select id="fatherAlive" required>
+        <option value="">Select</option>
+        <option value="yes">Yes</option>
+        <option value="no">No</option>
+      </select>
+    </div>
+    <div class="question">
+      <label for="motherAlive">Is mother alive?</label>
+      <select id="motherAlive" required>
+        <option value="">Select</option>
+        <option value="yes">Yes</option>
+        <option value="no">No</option>
+      </select>
+    </div>
+    <div class="question">
+      <label for="hasChildren">Any children?</label>
+      <select id="hasChildren" required>
+        <option value="">Select</option>
+        <option value="yes">Yes</option>
+        <option value="no">No</option>
+      </select>
+    </div>
+    <div id="childrenCounts" class="hidden">
+      <div class="question">
+        <label for="sonsCount">Number of sons</label>
+        <input type="number" id="sonsCount" min="0" />
+      </div>
+      <div class="question">
+        <label for="daughtersCount">Number of daughters</label>
+        <input type="number" id="daughtersCount" min="0" />
+      </div>
+    </div>
+    <div class="question">
+      <label for="hasSiblings">Any siblings?</label>
+      <select id="hasSiblings" required>
+        <option value="">Select</option>
+        <option value="yes">Yes</option>
+        <option value="no">No</option>
+      </select>
+    </div>
+    <div id="siblingsCounts" class="hidden">
+      <div class="question">
+        <label for="brothersCount">Number of brothers</label>
+        <input type="number" id="brothersCount" min="0" />
+      </div>
+      <div class="question">
+        <label for="sistersCount">Number of sisters</label>
+        <input type="number" id="sistersCount" min="0" />
+      </div>
+    </div>
+    <div id="nephewsCountDiv" class="question hidden">
+      <label for="nephewsCount">Number of nephews</label>
+      <input type="number" id="nephewsCount" min="0" />
+    </div>
+    <button type="button" id="calculateBtn">Calculate Shares</button>
+  </form>
+  <div id="result" class="result"></div>
+</div>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const isMuslimEl = document.getElementById('isMuslim');
+    const allHeirsMuslimEl = document.getElementById('allHeirsMuslim');
+    const genderEl = document.getElementById('gender');
+    const marriedEl = document.getElementById('married');
+    const wivesDiv = document.getElementById('wivesCountDiv');
+    const husbandDiv = document.getElementById('husbandAliveDiv');
+    const hasChildrenEl = document.getElementById('hasChildren');
+    const childrenDiv = document.getElementById('childrenCounts');
+    const hasSiblingsEl = document.getElementById('hasSiblings');
+    const siblingsDiv = document.getElementById('siblingsCounts');
+    const brothersEl = document.getElementById('brothersCount');
+    const sistersEl = document.getElementById('sistersCount');
+    const nephewsDiv = document.getElementById('nephewsCountDiv');
+    const calculateBtn = document.getElementById('calculateBtn');
+    const resultDiv = document.getElementById('result');
+
+    function toggleSpouseFields() {
+      if (marriedEl.value === 'yes' && genderEl.value === 'male') {
+        wivesDiv.classList.remove('hidden');
+        husbandDiv.classList.add('hidden');
+      } else if (marriedEl.value === 'yes' && genderEl.value === 'female') {
+        husbandDiv.classList.remove('hidden');
+        wivesDiv.classList.add('hidden');
+      } else {
+        wivesDiv.classList.add('hidden');
+        husbandDiv.classList.add('hidden');
+      }
+    }
+
+    genderEl.addEventListener('change', toggleSpouseFields);
+    marriedEl.addEventListener('change', toggleSpouseFields);
+
+    hasChildrenEl.addEventListener('change', () => {
+      childrenDiv.classList.toggle('hidden', hasChildrenEl.value !== 'yes');
+    });
+
+    hasSiblingsEl.addEventListener('change', () => {
+      siblingsDiv.classList.toggle('hidden', hasSiblingsEl.value !== 'yes');
+      nephewsDiv.classList.add('hidden');
+    });
+
+    brothersEl.addEventListener('input', () => {
+      const broCount = parseInt(brothersEl.value, 10) || 0;
+      nephewsDiv.classList.toggle('hidden', !(hasSiblingsEl.value === 'yes' && broCount === 0));
+    });
+
+    calculateBtn.addEventListener('click', () => {
+      const isMuslim = isMuslimEl.value;
+      const allHeirsMuslim = allHeirsMuslimEl.value;
+      if (isMuslim !== 'yes' || allHeirsMuslim !== 'yes') {
+        resultDiv.innerHTML = '<p>Non-Muslim inheritance rules not supported.</p>';
+        return;
+      }
+
+      const gender = genderEl.value;
+      const married = marriedEl.value;
+      const wives = (gender === 'male' && married === 'yes') ? parseInt(document.getElementById('wivesCount').value, 10) || 0 : 0;
+      const husbandAlive = (gender === 'female' && married === 'yes') ? document.getElementById('husbandAlive').value === 'yes' : false;
+      const sons = (hasChildrenEl.value === 'yes') ? parseInt(	document.getElementById('sonsCount').value, 10) || 0 : 0;
+      const daughters = (hasChildrenEl.value === 'yes') ? parseInt(document.getElementById('daughtersCount').value, 10) || 0 : 0;
+      const fatherAlive = document.getElementById('fatherAlive').value === 'yes';
+      const motherAlive = document.getElementById('motherAlive').value === 'yes';
+      const siblings = hasSiblingsEl.value === 'yes';
+      const brothers = siblings ? parseInt(document.getElementById('brothersCount').value, 10) || 0 : 0;
+      const sisters = siblings ? parseInt(document.getElementById('sistersCount').value, 10) || 0 : 0;
+      const nephews = (siblings && brothers === 0) ? parseInt(document.getElementById('nephewsCount').value, 10) || 0 : 0;
+
+      let shares = [];
+      let remainder = 1;
+
+      // Tier 1: Spouse
+      if (gender === 'male' && wives > 0) {
+        const shareEach = (sons || daughters) ? 1/8 : 1/4;
+        shares.push({ name: 'Wives', count: wives, each: shareEach, total: shareEach * wives });
+        remainder -= shareEach * wives;
+      }
+      if (gender === 'female' && husbandAlive) {
+        const share = (sons || daughters) ? 1/4 : 1/2;
+        shares.push({ name: 'Husband', count: 1, each: share, total: share });
+        remainder -= share;
+      }
+
+      // Tier 2: Parents
+      if (remainder > 0 && fatherAlive) {
+        shares.push({ name: 'Father', count: 1, each: 1/6, total: 1/6 });
+        remainder -= 1/6;
+      }
+      if (remainder > 0 && motherAlive) {
+        const mShare = (sons || daughters || fatherAlive || brothers) ? 1/6 : 1/3;
+        shares.push({ name: 'Mother', count: 1, each: mShare, total: mShare });
+        remainder -= mShare;
+      }
+
+      // Tier 3: Daughters only
+      if (sons === 0 && daughters > 0 && remainder > 0) {
+        const totalD = daughters === 1 ? 1/2 : 2/3;
+        const eachD = totalD / daughters;
+        shares.push({ name: 'Daughters', count: daughters, each: eachD, total: totalD });
+        remainder -= totalD;
+      }
+
+      // Tier 4: Sons & daughters splitting
+      if (sons > 0 && remainder > 0) {
+        const totalParts = 2 * sons + daughters;
+        const unit = remainder / totalParts;
+        shares.push({ name: 'Sons', count: sons, each: 2 * unit, total: 2 * unit * sons });
+        if (daughters > 0) shares.push({ name: 'Daughters', count: daughters, each: unit, total: unit * daughters });
+        remainder = 0;
+      }
+
+      // Tier 5: Brothers or nephews
+      if (remainder > 0) {
+        if (brothers > 0) {
+          shares.push({ name: 'Brothers', count: brothers, each: remainder / brothers, total: remainder });
+          remainder = 0;
+        } else if (nephews > 0) {
+          shares.push({ name: 'Nephews', count: nephews, each: remainder / nephews, total: remainder });
+          remainder = 0;
+        }
+      }
+
+      // Render
+      let html = '<h3>Inheritance Distribution</h3>' +
+                 '<div class="steps">' +
+                 'Step 1: Deduct all burial expenses.<br>' +
+                 'Step 2: Pay off any debts (including Mahr).<br>' +
+                 'Step 3: Execute any valid will within one-third of remaining estate.<br>' +
+                 'Step 4: Distribute the remaining estate according to Islamic Shariah fixed shares.' +
+                 '</div>' +
+                 '<h4>Shares (of remaining estate):</h4>';
+      shares.forEach(s => {
+        html += '<div class="tier">' +
+                s.name + ' = ' + s.count + ' × ' + (s.each * 100).toFixed(2) + '% each = ' + (s.total * 100).toFixed(2) + '%</div>';
+      });
+      html += '<h4>How Islamic Inheritance (Wirasat) Is Distributed</h4><div class="distribution">' +
+              'Spouse receives fixed Qur’anic shares first.<br>' +
+              'Parents receive fixed shares next (father 1/6; mother 1/6 or 1/3 if no other sharers).<br>' +
+              'Children inherit: if sons exist they split in a 2:1 ratio with daughters; if only daughters, they take their fixed share.<br>' +
+              'Any leftover estate passes to brothers first, then nephews if no brothers are present.' +
+              '</div>';
+      resultDiv.innerHTML = html;
+      resultDiv.style.display = 'block';
+    });
+  });
+</script>
+</body>
+</html>
